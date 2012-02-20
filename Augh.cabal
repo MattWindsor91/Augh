@@ -1,0 +1,18 @@
+Name: Augh
+Version: 1.0
+Cabal-Version: >=1.2
+License: MIT
+Author: Matt Windsor
+Synopsis: Anorexic UML to Graphviz compiler for Haskell
+Build-Type: Simple
+
+Library
+  Exposed-Modules: Augh.Uml,
+                   Augh.UmlTypes,
+                   Augh.Graphviz
+  Hs-Source-Dirs: src
+
+Executable augh
+  Main-Is: Main.lhs
+  Build-Depends: base
+  Hs-Source-Dirs: src
