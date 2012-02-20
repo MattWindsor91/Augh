@@ -145,7 +145,7 @@ up the label, with any name transformations already done.
 >   "<<TABLE ALIGN=\"LEFT\" BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\">\n"
 >   ++ "<TR><TD>\n" ++ name ++ "</TD></TR>\n"
 >   ++ fieldPreamble ++ makeFieldsHtml fields ++ "</TD></TR>\n"
->   ++ "<TR><TD ALIGN=\"LEFT\">\n" ++ makeMethodsHtml methods ++ "</TD></TR>\n"
+>   ++ methodPreamble ++ makeMethodsHtml methods ++ "</TD></TR>\n"
 >   ++ "</TABLE>>"
 
 ***
