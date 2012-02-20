@@ -90,12 +90,18 @@ Static is a special case
 
 
 > makeParamsHtmlInner :: String -> [Variable] -> String
-> makeParamsHtmlInner html [] = html
+> makeParamsHtmlInner html [] = html ++ "<BR />\n"
 > makeParamsHtmlInner [] (x:xs) = makeParamsHtmlInner (makeVariableHtml x) xs
-> makeParamsHtmlInner html (x:xs) = makeParamsHtmlInner (html ++ ", " ++ makeVariableHtml x) xs
+> makeParamsHtmlInner html (x:xs) = makeParamsHtmlInner (html ++ ",<BR />\n  " ++ makeVariableHtml x) xs
+
+If there is only one param, we want it inline.  Otherwise, we want to
+put all the params on their own line, to make the class not become
+ridiculously wide.
 
 > makeParamsHtml :: [Variable] -> String
-> makeParamsHtml params = makeParamsHtmlInner [] params
+> makeParamsHtml [] = []
+> makeParamsHtml (variable:[]) = makeVariableHtml variable
+> makeParamsHtml params = "<BR />\n  " ++ makeParamsHtmlInner [] params
 
 > makeMethodHtml :: Method -> String
 

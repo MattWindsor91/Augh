@@ -168,8 +168,8 @@ Relationships
 >     nameOf (EmptyRelationEnd name) = (safeName name)
 
 > transformUmlRelationship (sub :->: super)
->   = (EdgeStmt (EdgeNodeId super)
->               (DirectedEdge (EdgeNodeId sub))
+>   = (EdgeStmt (EdgeNodeId sub)
+>               (DirectedEdge (EdgeNodeId super))
 >               (AttrSet(("arrowhead" :=: "empty"))))
 >   where
 >     nameOf (FullRelationEnd name _ _ _) = (safeName name)
