@@ -6,7 +6,7 @@ Licenced under the terms of the MIT Licence (see COPYING)
 
 > module Augh.Uml where
 
-> import Augh.Graphviz
+> import Augh.GvTypes
 > import Augh.UmlLabel
 > import Augh.UmlTypes
 
@@ -18,7 +18,7 @@ graph, used to "set up" the graph before the main body of the graph.
 
 > umlGraphvizPreamble :: Stmt
 > umlGraphvizPreamble = NodeStmt (UnportedNodeId "node")
->                                (AttrSet ("shape" :=: "none"))
+>                                (Attrs [ "shape" :=: "none" ])
 
 Transforming a list of statements
 ---------------------------------
@@ -62,10 +62,9 @@ It converts a UML statement into a Graphviz statement, which itself
 may be a composite of many Graphviz statements.
 
 > transformUml :: Uml -> Stmt
-> transformUml (a :> b) = transformUml a :# transformUml b
 > transformUml (ClassUml cls) = transformUmlClass cls
 > transformUml (RelationUml rel) = transformUmlRelationship rel
-> transformUml _ = NullStmt
+> transformUml (GvPragma pragma) = pragma
 
 Classes
 -------
@@ -91,7 +90,7 @@ separate process described in the UmlLabel module).
 > makeUmlNode :: Class -> String -> Stmt
 > makeUmlNode (Class name fields methods) label
 >   = NodeStmt (UnportedNodeId (safeName name))
->              (AttrSet ("label" :=: label))
+>              (Attrs [ "label" :=: label ])
 
 ***
 
@@ -106,71 +105,61 @@ deterministically and in a manner sufficiently approximating
 one-to-one, so that a safe conversion of a class name can feasibly
 only stand for one class name.
 
-As usual, safeName is defined as the initial invocation of a
-tail-recursive procedure...
+As usual, safeName is defined using a left fold (in pointfree style)...
 
 > safeName :: ClassName -> String
-> safeName name = safeNameInner [] name
+> safeName = foldl safeNameEncode []
 
-... which we'll define here.
+... the payload of which we'll define here.
 
-> safeNameInner :: String -> String -> String
-
-BASE CASE: When the input string is empty, the result is the output
-string.
-
-> safeNameInner output [] = output
-
-INDUCTIVE CASE: Take the next character of input, perform a
-transformation to it that will render it "safe", and recursively call
-safeNameInner with the result appended to output and the rest of the
-input presented as input.
-
-> safeNameInner output (x:xs) = safeNameInner (output ++ encodex x) xs
-
-We encode possibly unsafe characters with a system in which 'Z' is the
-escape character, 'Z' is mapped to 'ZZ' and unsafe characters are
-mapped to 'Zn' such as n is not 'Z'.
-
->   where
->     encodex 'Z'  = "ZZ"
->     encodex ' '  = "Zs"
->     encodex '\n' = "Zn"
->     encodex '<'  = "Zg"
->     encodex '>'  = "Zl"
->     encodex a    = [a]
+>  where
+>    safeNameEncode out nextIn = out ++ encodex nextIn
+>    encodex 'Z'  = "ZZ"
+>    encodex ' '  = "Zs"
+>    encodex '\n' = "Zn"
+>    encodex '<'  = "Zg"
+>    encodex '>'  = "Zl"
+>    encodex a    = [a]
 
 Relationships
 -------------
 
+Relationships are mapped onto Graphviz edges.
+
 > transformUmlRelationship :: Relationship -> Stmt
 
+:<>: is the composition relationship.
+
 > transformUmlRelationship (part :<>: whole)
->   = (EdgeStmt (EdgeNodeId (nameOf part))
->               (DirectedEdge (EdgeNodeId (nameOf whole)))
->               (AttrSet
->                (("arrowhead" :=: "diamond") :@
->                 ("headlabel" :=: makeRelationEndLabel whole) :@
->                 ("taillabel" :=: makeRelationEndLabel part))))
->   where
->     nameOf (FullRelationEnd name _ _ _) = (safeName name)
->     nameOf (EmptyRelationEnd name) = (safeName name)
+>   = makeRelationshipEdge part whole
+>     [ "arrowhead" :=: "diamond",
+>       "headlabel" :=: makeRelationEndLabel whole,
+>       "taillabel" :=: makeRelationEndLabel part ]
+
+:--: is the association relationship.
 
 > transformUmlRelationship (from :--: to)
->   = (EdgeStmt (EdgeNodeId (nameOf from))
->               (DirectedEdge (EdgeNodeId (nameOf to)))
->               (AttrSet
->                (("arrowhead" :=: "none") :@
->                 ("headlabel" :=: makeRelationEndLabel to) :@
->                 ("taillabel" :=: makeRelationEndLabel from))))
->   where
->     nameOf (FullRelationEnd name _ _ _) = (safeName name)
->     nameOf (EmptyRelationEnd name) = (safeName name)
+>   = makeRelationshipEdge from to
+>     [ "arrowhead" :=: "none",
+>       "headlabel" :=: makeRelationEndLabel to,
+>       "taillabel" :=: makeRelationEndLabel from ]
+
+:->: is the generalisation relationship.  It's different in that it
+takes in two class names instead of two relation ends --
+generalisations can't be backed up by fields!
 
 > transformUmlRelationship (sub :->: super)
->   = (EdgeStmt (EdgeNodeId sub)
->               (DirectedEdge (EdgeNodeId super))
->               (AttrSet(("arrowhead" :=: "empty"))))
+>   = makeRelationshipEdge (EmptyRelationEnd sub)
+>                          (EmptyRelationEnd super)
+>     [ "arrowhead" :=: "empty" ]
+
+This is the general edge maker for relationships.
+
+> makeRelationshipEdge :: RelationEnd -> RelationEnd -> [Attr] -> Stmt
+> makeRelationshipEdge from to attrs
+>   = (EdgeStmt (EdgeNodeId (nameOf from))
+>               (DirectedEdge (EdgeNodeId (nameOf to)))
+>               (Attrs attrs))
 >   where
 >     nameOf (FullRelationEnd name _ _ _) = (safeName name)
 >     nameOf (EmptyRelationEnd name) = (safeName name)

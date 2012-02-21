@@ -10,6 +10,10 @@ to Graphviz.
 
 > module Augh.UmlTypes where
 
+We import GvTypes for the graphviz pragma function.
+
+> import Augh.GvTypes
+
 Type Synonyms
 -------------
 
@@ -24,13 +28,14 @@ sense semantically.
 UML Statement
 -------------
 
-A UML (class diagram) statement is a composition of statements, a
-class definition, or a relationship definition.
+A UML (class diagram) statement is a class definition or a
+relationship definition.  In addition, we recognise a "Graphviz
+pragma", or a set of Graphviz statements.
 
 > data Uml = Null
->          | Uml :> Uml
 >          | ClassUml ClassDef
 >          | RelationUml Relationship
+>          | GvPragma Stmt
 >          deriving (Show, Read)
 
 Classes
@@ -175,8 +180,7 @@ Operators
 Here we define the precedence and associativity of our custom
 operators.
 
-> infixr 5 :-
-> infixr 5 :>
+> infixr 9 :-
 > infixr 5 :>>
 > infixr 5 :<>:
 > infixr 5 :--:

@@ -4,68 +4,15 @@ Augh.Graphviz
 Part of Augh!, the Anorexic UML to Graphviz compiler for Haskell
 Licenced under the terms of the MIT Licence (see COPYING)
 
-This module contains the algebraic data types for the Graphviz Dot
-language, as well as functions converting from said ADTs into strings
-of concrete Dot code.
+This module contains functions converting from the ADTs in the GvTypes
+module into strings of concrete Dot (Graphviz) code.
 
 > module Augh.Graphviz where
-
-> data EdgeOperand = EdgeNodeId String
->                  | Subgraph String Stmt
->                  deriving Show
-
-> data Attr = Attr :@ Attr
->           | TruthAssignment String
->           | String :=: String
->           deriving Show
-
-> data EdgeRhs = CompoundEdgeRhs EdgeRhs EdgeRhs
->              | DirectedEdge EdgeOperand
->              deriving Show
-
-> data AttrList = NullAttrList
->               | AttrSet Attr
->               | AttrList :& AttrList
->               deriving Show
-
-> data CompassDirection = North
->                       | Northeast
->                       | East
->                       | Southeast
->                       | South
->                       | Southwest
->                       | West
->                       | Northwest
->                       | Centre
->                       | Underscore
->                       deriving Show
-
-> data Port = CompassPort CompassDirection
->           | IdAndCompassPort String CompassDirection
->           deriving Show
-
-> data NodeId = UnportedNodeId String
->             | PortedNodeId String Port
->             deriving Show
-
-> data Stmt = NullStmt
->           | Stmt :# Stmt
->           | NodeStmt NodeId AttrList
->           | EdgeStmt EdgeOperand EdgeRhs AttrList
->           | SubgraphStmt String Stmt
->           deriving Show
-
-> data Graphviz = Graph String Stmt
->               | Digraph String Stmt
->               deriving Show
-
-> infixr 5 :#
-> infixr 5 :@
-> infixr 5 :&
+> import Augh.GvTypes
 
 > compile :: Graphviz -> String
-> compile (Graph name b) = "graph " ++ name ++ " {\n" ++ compileStmt b ++ ";\n}"
-> compile (Digraph name b) = "digraph " ++ name ++ " {\n" ++ compileStmt b ++ ";\n}"
+> compile (Graph name b) = concat ["graph ", name, " {\n", compileStmt b, ";\n}"]
+> compile (Digraph name b) = concat ["digraph ", name, " {\n", compileStmt b, ";\n}"]
 
 > compileNodeId :: NodeId -> String
 > compileNodeId (UnportedNodeId a) = a
@@ -87,35 +34,41 @@ of concrete Dot code.
 > compileDirection Underscore = "_"
 
 > compileAttrList :: AttrList -> String
-> compileAttrList NullAttrList = "[]"
 > compileAttrList (a :& b) = compileAttrList a ++ compileAttrList b
-> compileAttrList (AttrSet a) = "[" ++ compileAttr a ++ "]"
+
+To compile a list of attributes, return "[x0, x1, .., xn]" where xi is
+the compiled form of each attribute in the list.  In order to get the
+commas to separate the terms, we have a special case in our left fold
+for the case where no output has been folded yet.
+
+> compileAttrList (Attrs lst) = "[" ++ compiledLst lst ++ "]"
+>   where
+>     compiledLst = foldl listFold []
+>     listFold [] y = compileAttr y
+>     listFold x y = concat [x, ", ", compileAttr y]
 
 > compileAttr :: Attr -> String
-> compileAttr (TruthAssignment a) = a
+> compileAttr (a :=: "true") = a
 > compileAttr (a :=: b) = a ++ "=" ++ b
-> compileAttr (a :@ b) = compileAttr a ++ ", " ++ compileAttr b
 
 > compileEdgeOp :: EdgeOperand -> String
 > compileEdgeOp (EdgeNodeId node) = node
 > compileEdgeOp (Subgraph name contents)
->   = "subgraph " ++ name ++ " { " ++ compileStmt contents ++ " } "
+>   = concat ["subgraph ", name, " { ", compileStmt contents, " } "]
 
 > compileEdgeRhs :: EdgeRhs -> String
 > compileEdgeRhs (CompoundEdgeRhs a b) = compileEdgeRhs a ++ compileEdgeRhs b
 > compileEdgeRhs (DirectedEdge op) = "-> " ++ compileEdgeOp op
 
 > compileStmt :: Stmt -> String
-> compileStmt (a :# b) = compileStmt(a) ++ ";\n" ++ compileStmt b
-> compileStmt (NodeStmt a b) = compileNodeId a ++ " " ++ compileAttrList b
+> compileStmt (a :# b) = concat [compileStmt a, ";\n", compileStmt b]
+> compileStmt (NodeStmt a b) = concat [compileNodeId a, " ", compileAttrList b]
 > compileStmt (EdgeStmt lhs rhs attrs)
->   = compileEdgeOp lhs ++ " " ++ compileEdgeRhs rhs ++ " " ++ compileAttrList attrs
+>   = concat [compileEdgeOp lhs, " ", compileEdgeRhs rhs, " ", compileAttrList attrs]
 > compileStmt NullStmt = ""
-
-> infixr 6 :=:
 
 > sampleGraph = Digraph "Sample"
 >                       (NodeStmt (PortedNodeId "funx" (CompassPort North))
->                                 (AttrSet(("label" :=: "bar")
->                                          :@ ("color" :=: "blue"))) :#
+>                                 (Attrs ["label" :=: "bar",
+>                                         "color" :=: "blue"]) :#
 >                        NullStmt)
