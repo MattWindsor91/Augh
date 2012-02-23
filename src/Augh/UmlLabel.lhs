@@ -271,10 +271,10 @@ Relationship labels
 > makeRelationEndLabel :: RelationEnd -> String
 > makeRelationEndLabel (EmptyRelationEnd _) = "\"\""
 > makeRelationEndLabel (FullRelationEnd _ visibility name multiplicity)
->   = "\""
->     ++ makeVisibilityHtml visibility
->     ++ " "
->     ++ htmlEncode name
->     ++ "\\n"
->     ++ makeMultiplicityHtml multiplicity
->     ++ "\""
+>   = concat [ "\"",
+>              makeVisibilityHtml visibility,
+>              " ",
+>              htmlEncode name,
+>              "\\n",
+>              makeMultiplicityHtml multiplicity,
+>              "\"" ]
