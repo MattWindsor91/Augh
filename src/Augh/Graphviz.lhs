@@ -9,6 +9,7 @@ module into strings of concrete Dot (Graphviz) code.
 
 > module Augh.Graphviz where
 > import Augh.GvTypes
+> import Data.List
 
 > compile :: Graphviz -> String
 > compile (Graph name b) = concat ["graph ", name, " {\n", compileStmt b, ";\n}"]
@@ -60,15 +61,11 @@ for the case where no output has been folded yet.
 > compileEdgeRhs (CompoundEdgeRhs a b) = compileEdgeRhs a ++ compileEdgeRhs b
 > compileEdgeRhs (DirectedEdge op) = "-> " ++ compileEdgeOp op
 
+Statement compiler
+------------------
+
 > compileStmt :: Stmt -> String
 > compileStmt (a :# b) = concat [compileStmt a, ";\n", compileStmt b]
 > compileStmt (NodeStmt a b) = concat [compileNodeId a, " ", compileAttrList b]
 > compileStmt (EdgeStmt lhs rhs attrs)
->   = concat [compileEdgeOp lhs, " ", compileEdgeRhs rhs, " ", compileAttrList attrs]
-> compileStmt NullStmt = ""
-
-> sampleGraph = Digraph "Sample"
->                       (NodeStmt (PortedNodeId "funx" (CompassPort North))
->                                 (Attrs ["label" :=: "bar",
->                                         "color" :=: "blue"]) :#
->                        NullStmt)
+>   =  intercalate " " [compileEdgeOp lhs, compileEdgeRhs rhs, compileAttrList attrs]

@@ -4,7 +4,7 @@ Augh.Uml
 Part of Augh!, the Anorexic UML to Graphviz compiler for Haskell
 Licenced under the terms of the MIT Licence (see COPYING)
 
-> module Augh.Uml where
+> module Augh.Uml (transformUmlList) where
 
 > import Augh.GvTypes
 > import Augh.UmlLabel
@@ -30,29 +30,13 @@ output graph in an algebraic data type format that can be used with
 the compile function in Augh.Graphviz.
 
 > transformUmlList :: String -> [Uml] -> Graphviz
-> transformUmlList name statements
->   = Digraph name (transformUmlListInner umlGraphvizPreamble statements)
-
-***
-
-This function is the main, tail-recursive body of the statement list
-transformer.
-
-> transformUmlListInner :: Stmt -> [Uml] -> Stmt
-
-BASE CASE: When there are no more UML statements left to transform,
-return the list of transformed Graphviz statements.
-
-> transformUmlListInner output [] = output
-
-INDUCTIVE CASE: Invoke transformUmlListInner with the composite of the
-current statement output and the transformation of the next UML
-statement that needs transforming (the head of the Uml list), and the
-rest of the untransformed UML statements.
-
-> transformUmlListInner output (x:xs)
->   = transformUmlListInner output' xs
->     where output' = (output :# transformUml x)
+> transformUmlList name umls
+>   = Digraph name stmt
+>     where
+>       stmt
+>         = (foldl transformUmlListInner umlGraphvizPreamble umls)
+>       transformUmlListInner currentStm uml
+>         = (currentStm :# (transformUml uml))
 
 UML statement transformer
 -------------------------
@@ -105,15 +89,11 @@ deterministically and in a manner sufficiently approximating
 one-to-one, so that a safe conversion of a class name can feasibly
 only stand for one class name.
 
-As usual, safeName is defined using a left fold (in pointfree style)...
+safeName just appends the results of encoding every character.
 
 > safeName :: ClassName -> String
-> safeName = foldl safeNameEncode []
-
-... the payload of which we'll define here.
-
+> safeName = concatMap encodex
 >  where
->    safeNameEncode out nextIn = out ++ encodex nextIn
 >    encodex 'Z'  = "ZZ"
 >    encodex ' '  = "Zs"
 >    encodex '\n' = "Zn"
@@ -136,6 +116,8 @@ Relationships are mapped onto Graphviz edges.
 >       "headlabel" :=: makeRelationEndLabel whole,
 >       "taillabel" :=: makeRelationEndLabel part ]
 
+***
+
 :--: is the association relationship.
 
 > transformUmlRelationship (from :--: to)
@@ -143,6 +125,8 @@ Relationships are mapped onto Graphviz edges.
 >     [ "arrowhead" :=: "none",
 >       "headlabel" :=: makeRelationEndLabel to,
 >       "taillabel" :=: makeRelationEndLabel from ]
+
+***
 
 :->: is the generalisation relationship.  It's different in that it
 takes in two class names instead of two relation ends --
@@ -152,6 +136,8 @@ generalisations can't be backed up by fields!
 >   = makeRelationshipEdge (EmptyRelationEnd sub)
 >                          (EmptyRelationEnd super)
 >     [ "arrowhead" :=: "empty" ]
+
+***
 
 This is the general edge maker for relationships.
 

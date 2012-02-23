@@ -11,6 +11,7 @@ goes into the labels.
 We'll need access to the UML algebraic data types.
 
 > import Augh.UmlTypes
+> import Data.List
 
 Assumed Knowledge
 -----------------
@@ -25,14 +26,44 @@ Constants
 These are mainly bits of commonly used HTML that are factored out to
 make the code cleaner.
 
-fieldPreamble and methodPreamble are the bits of HTML that are
-inserted before a list of fields and methods, respectively.
+The following prefix and suffix strings go before and after their
+respective parts of the UML label, respectively.
 
-> fieldPreamble :: String
-> fieldPreamble = "<TR><TD ALIGN=\"TEXT\" BALIGN=\"LEFT\">\n"
+The entire label:
 
-> methodPreamble :: String
-> methodPreamble = "<TR><TD ALIGN=\"TEXT\" BALIGN=\"LEFT\">\n"
+> labelPrefix :: String
+> labelPrefix = "<<TABLE ALIGN=\"LEFT\" BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\">\n"
+
+> labelSuffix :: String
+> labelSuffix = "</TABLE>>"
+
+***
+
+Class name:
+
+> namePrefix :: String
+> namePrefix = "<TR><TD>\n"
+
+> nameSuffix :: String
+> nameSuffix = "</TD></TR>\n"
+
+Field sets:
+
+> fieldsPrefix :: String
+> fieldsPrefix = "<TR><TD ALIGN=\"TEXT\" BALIGN=\"LEFT\">\n"
+
+> fieldsSuffix :: String
+> fieldsSuffix = "</TD></TR>\n"
+
+***
+
+Method sets:
+
+> methodsPrefix :: String
+> methodsPrefix = "<TR><TD ALIGN=\"TEXT\" BALIGN=\"LEFT\">\n"
+
+> methodsSuffix :: String
+> methodsSuffix = "</TD></TR>\n"
 
 ***
 
@@ -47,20 +78,13 @@ Functions
 
 First of all, we need a few helper functions.
 
-htmlEncode and its inner recursion take a string as input and return
-as output that string with any character sequences that could be
-mistaken for HTML escaped.  For example, < and > become &lt; and &gt;.
+htmlEncode takes a string as input and return as output that string
+with any character sequences that could be mistaken for HTML escaped.
+For example, < and > become &lt; and &gt;.
 
 > htmlEncode :: String -> String
-> htmlEncode = foldl htmlEncodeInner []
-
-htmlEncodeInner simply runs through the string moving each character
-from the start of the input to the end of the output.  It appends the
-next character in the input verbatim if it's already OK for HTML, or
-an escaped replacement if it isn't.
-
+> htmlEncode = concatMap encodex
 >   where
->     htmlEncodeInner encoded x = (encoded ++ encodex x)
 >     encodex '<'  = "&lt;"
 >     encodex '>'  = "&gt;"
 >     encodex '&'  = "&amp;"
@@ -76,14 +100,7 @@ each item in the list, separated by the separator (with no separators
 at the start or the end).
 
 > compileSeparatedList :: String -> (a -> String) -> [a] -> String
-> compileSeparatedList sep compile = foldl foldTerm []
-
-The first term of a ensures that the output is not prefixed by sep;
-the second term places a separator between each term in the fold.
-
->   where
->     foldTerm [] a = compile a
->     foldTerm output a = concat [output, sep, compile a]
+> compileSeparatedList sep compile = (intercalate sep) . (map compile)
 
 ***
 
@@ -173,7 +190,7 @@ be placed in between the brackets representing the parameter list.
 
 > makeParamsHtml :: [Variable] -> String
 
-If there <= one param, keep it all one one line.
+If there are less than two params, keep the param list on one line.
 
 > makeParamsHtml []         = []
 > makeParamsHtml (param:[]) = makeVariableHtml param
@@ -229,11 +246,11 @@ up the label, with any name transformations already done.
 
 > makeClassLabelInner :: String -> [Field] -> [Method] -> String
 > makeClassLabelInner name fields methods =
->   "<<TABLE ALIGN=\"LEFT\" BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\">\n"
->   ++ "<TR><TD>\n" ++ name ++ "</TD></TR>\n"
->   ++ fieldPreamble ++ makeFieldsHtml fields ++ "</TD></TR>\n"
->   ++ methodPreamble ++ makeMethodsHtml methods ++ "</TD></TR>\n"
->   ++ "</TABLE>>"
+>   concat [ labelPrefix,
+>            namePrefix, name, nameSuffix,
+>            fieldsPrefix, makeFieldsHtml fields, fieldsSuffix,
+>            methodsPrefix, makeMethodsHtml methods, methodsSuffix,
+>            labelSuffix ]
 
 ***
 

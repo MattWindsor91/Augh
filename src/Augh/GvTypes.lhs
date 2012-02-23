@@ -30,6 +30,10 @@ implied, but we'll handle that special case if and when the RHS of a
 >               | AttrList :& AttrList
 >               deriving (Show, Read)
 
+***
+
+Compass directions are used for ports.
+
 > data CompassDirection = North
 >                       | Northeast
 >                       | East
@@ -42,20 +46,37 @@ implied, but we'll handle that special case if and when the RHS of a
 >                       | Underscore
 >                       deriving (Show, Read)
 
+***
+
 > data Port = CompassPort CompassDirection
 >           | IdAndCompassPort String CompassDirection
 >           deriving (Show, Read)
+
+***
+
+A node ID can either refer to a named node, or a given port on a named
+node.
 
 > data NodeId = UnportedNodeId String
 >             | PortedNodeId String Port
 >             deriving (Show, Read)
 
-> data Stmt = NullStmt
->           | Stmt :# Stmt
+***
+
+A statement can be a node, an edge, a subgraph or a composition of
+statements.
+
+> data Stmt = Stmt :# Stmt
 >           | NodeStmt NodeId AttrList
 >           | EdgeStmt EdgeOperand EdgeRhs AttrList
 >           | SubgraphStmt String Stmt
 >           deriving (Show, Read)
+
+***
+
+A Graphviz graph can be an (undirected) graph or di(rected) graph.
+For Augh!, we only use Digraph, but Graph is included for
+completeness.
 
 > data Graphviz = Graph String Stmt
 >               | Digraph String Stmt

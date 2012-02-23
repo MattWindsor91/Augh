@@ -32,8 +32,7 @@ A UML (class diagram) statement is a class definition or a
 relationship definition.  In addition, we recognise a "Graphviz
 pragma", or a set of Graphviz statements.
 
-> data Uml = Null
->          | ClassUml ClassDef
+> data Uml = ClassUml ClassDef
 >          | RelationUml Relationship
 >          | GvPragma Stmt
 >          deriving (Show, Read)
