@@ -1,0 +1,326 @@
+[ ClassUml
+ (Concrete
+  (Class "ConversationLoader"
+   [ StaticField Private ("processedState" :- "enum processedState") ]
+   [ StaticMethod Public "getConversations"
+     [ "characterName" :- "String",
+       "seriesNumber" :- "int" ]
+     "Conversation[]",
+     StaticMethod Public "getContentsOfTextFile" [] "String[]",
+     StaticMethod Public "checkConversationsExist" [] "boolean" ])),
+ClassUml
+ (Concrete
+  (Class "Command"
+   [Field Private ("argument" :- "String")]
+   [Method Public "getCommand" [] "CommandWord"])),
+ ClassUml
+ ("Enum" :>> Concrete
+  (Class "CommandWord"
+   [ Field Public ("ATTACK" :- "CommandWord"),
+     Field Public ("DROP" :- "CommandWord"),
+     Field Public ("GET" :- "CommandWord"),
+     Field Public ("HELP" :- "CommandWord"),
+     Field Public ("INVENTORY" :- "CommandWord"),
+     Field Public ("LOAD" :- "CommandWord"),
+     Field Public ("LOOK" :- "CommandWord"),
+     Field Public ("MOVE" :- "CommandWord"),
+     Field Public ("QUIT" :- "CommandWord"),
+     Field Public ("RANDOM" :- "CommandWord"),
+     Field Public ("SAVE" :- "CommandWord"),
+     Field Public ("SCRIPT" :- "CommandWord"),
+     Field Public ("TALK" :- "CommandWord"),
+     Field Public ("UNDO" :- "CommandWord") ]
+   []
+  )
+ ),
+ ClassUml
+ (Concrete
+  (Class "Conversation"
+   [ Field Private ("output" :- "String"),
+     Field Private ("response" :- "ArrayList<String>"),
+     Field Private ("holder" :- "ArrayList<Integer>"),
+     Field Private ("conversationNumber" :- "int") ]
+   [ Method Public "setOutput" ["output" :- "String"] "void",
+     Method Public "addResponse"
+     [ "newConversation" :- "Conversation",
+       "newResponse" :- "String" ]
+     "void",
+     Method Public "addResponse"
+     [ "conversationLocation" :- "int",
+       "newResponse" :- "String" ]
+     "void",
+     Method Public "runConversation" [] "int",
+     Method Public "setConversationNumber" ["number" :- "int"] "void",
+     Method Public "getConversationNumber" [] "int",
+     Method Public "getResponsePointer" ["responseNum" :- "int"] "int",
+     Method Public "getNumberOfResponses" [] "int",
+     Method Public "setResponseConversation"
+     [ "responseNumber" :- "int",
+       "conv" :- "Conversation" ]
+     "void" ])),
+ ClassUml
+ ("Enum" :>> Concrete
+  (Class "Direction"
+   [ Field Public ("NORTH" :- "Direction"),
+     Field Public ("EAST" :- "Direction"),
+     Field Public ("SOUTH" :- "Direction"),
+     Field Public ("WEST" :- "Direction"),
+     Field Public ("UP" :- "Direction"),
+     Field Public ("DOWN" :- "Direction") ] [])),
+ ClassUml
+ (Concrete
+  (Class "Game"
+   [ Field Private ("undoState" :- "byte[]"),
+     Field Private ("nextUndoIsRedo" :- "boolean") ]
+   [ Method Private "printIntro" [] "void",
+     Method Private "printHelp" [] "void",
+     Method Public "play" [] "void",
+     Method Private "executeCommand" ["command" :- "Command"] "void",
+     Method Private "random" [] "void",
+     Method Private "move" ["direction" :- "Direction"] "void",
+     Method Private "drop" ["item" :- "String"] "void",
+     Method Private "quit" [] "void",
+     Method Private "look" [] "void",
+     Method Private "look" ["description" :- "String"] "void",
+     Method Private "printDescription" ["item" :- "Item"] "void",
+     Method Private "inventory" [] "void",
+     Method Private "get" ["itemName" :- "String"] "void",
+     Method Private "save" [] "boolean",
+     Method Private "serialiseWorldToByteArray" [] "byte[]",
+     Method Private "serialiseWorldThroughStream"
+     ["stream" :- "OutputStream"]
+     "boolean",
+     Method Private "load" [] "boolean",
+     Method Private "script" [] "void",
+     Method Private "undo" [] "boolean",
+     Method Private "loadFromSerialisedStream"
+     ["stream" :- "InputStream"]
+     "boolean",
+     Method Private "deserialiseWorldThroughStream"
+     ["stream" :- "InputStream"]
+     "World",
+     Method Private "attack" ["description" :- "String"] "void",
+     Method Private "talk" ["character" :- "String"] "void",
+     Method Private "conversationAction"
+     [ "character" :- "String",
+       "seriesNumber" :- "int",
+       "finalConversation" :- "int" ]
+     "void",
+     Method Private "changeGameWhenLordKnightIsDead" [] "void" ])),
+ ClassUml
+ (Concrete
+  (Class "GameCharacter"
+   [ Field Private ("name" :- "String"),
+     Field Private ("conversationPos" :- "int") ]
+   [ Method Public "getName" [] "String",
+     Method Public "engageInConversation" [] "int",
+     Method Public "nextConversation" [] "void",
+     Method Public "getConversationPosition" [] "int",
+     Method Private "loadConversation" [] "void" ])),
+ ClassUml
+ (Concrete
+  (Class "Item"
+   [ Field Private ("name" :- "String"),
+     Field Private ("description" :- "String"),
+     Field Private ("locked" :- "boolean") ]
+   [ Method Public "getName" [] "String",
+     Method Public "getDescription" [] "String",
+     Method Public "setLocked" ["locked" :- "boolean"] "void",
+     Method Public "getLocked" [] "boolean" ])),
+ ClassUml
+ (Concrete
+  (Class "Parser"
+   [ Field Private ("reader" :- "Scanner") ]
+   [ Method Public "getNextInput" [] "String",
+     Method Public "getNextCommand" [] "Command",
+     Method Private "checkForAlternativeArguments"
+     [ "input" :- "String" ]
+     "String" ])),
+ ClassUml
+ (Concrete
+  (Class "Player"
+   [ Field Private ("name" :- "String") ]
+   [ Method Public "getInventory" [] "PlayerInventory",
+     Method Public "getName" [] "String",
+     Method Public "addVisitedRoom"
+     [ "newRoom" :- "Room" ]
+     "void",
+     Method Public "getRandomVisitRoom" [] "Room",
+     Method Public "getVisitedRooms" [] "ArrayList<Room>" ])),
+ ClassUml
+ (Concrete
+  (Class "PlayerInventory"
+   [ StaticField Private ("maxItems" :- "int") ]
+   [ Method Public "addItem"
+     [ "item" :- "Item" ]
+     "boolean",
+     Method Public "removeItem"
+     [ "item" :- "Item" ]
+     "boolean" ])),
+ ClassUml
+ (Concrete
+  (Class "Printer"
+   [ StaticField Private ("shouldBeScripting" :- "boolean"),
+     StaticField Private ("cursorPosition" :- "int"),
+     StaticField Private ("consoleWidth" :- "int") ]
+   [ StaticMethod Public "outputText"
+     [ "outputText" :- "String" ]
+     "void",
+     StaticMethod Public "outputChars"
+     [ "outputChars" :- "String" ]
+     "void",
+     StaticMethod Public "recordToScript"
+     [ "text" :- "String" ]
+     "void",
+     StaticMethod Public "toggleScripting" [] "void",
+     StaticMethod Public "listHashMapContents"
+     [ "preListIfSingle" :- "String",
+       "preListIfMultiple" :- "String",
+       "map" :- "HashMap" ]
+     "void" ])),
+ ClassUml
+ (Concrete
+  (Class "Room"
+   [ Field Private ("name" :- "String"),
+     Field Private ("description" :- "String"),
+     Field Private ("locked" :- "boolean") ]
+   [ Method Public "getName" [] "String",
+     Method Public "printBasicDescription" [] "void",
+     Method Public "printFullDescription" [] "void",
+     Method Public "setDescription"
+     [ "newDescription" :- "String" ]
+     "void",
+     Method Public "setLocked"
+     [ "locked" :- "boolean" ]
+     "void",
+     Method Public "getLocked" [] "Boolean",
+     Method Public "setExit"
+     [ "direction" :- "Direction",
+       "adjacent" :- "Room" ]
+     "void",
+     Method Public "getExit" [] "Room",
+     Method Public "addCharacter"
+     [ "character" :- "GameCharacter" ]
+     "void",
+     Method Public "removeCharacter"
+     [ "name" :- "String" ]
+     "GameCharacter",
+     Method Public "getCharacter"
+     [ "name" :- "String" ]
+     "GameCharacter",
+     Method Public "isCharacterHere"
+     [ "name" :- "String" ]
+     "boolean",
+     Method Public "getInventory" [] "RoomInventory" ])),
+ ClassUml
+ (Concrete
+  (Class "RoomInventory"
+   []
+   [ Method Public "addItem"
+     [ "item" :- "Item" ]
+     "boolean",
+     Method Public "removeItem"
+     [ "name" :- "String" ]
+     "Item",
+     Method Public "getItem"
+     [ "name" :- "String" ]
+     "Item",
+     Method Public "itemExists"
+     [ "name" :- "String" ]
+     "boolean",
+     Method Public "numberOfItems" [] "int",
+     Method Public "printItems" [] "void" ])),
+ ClassUml
+ (Concrete
+  (Class "StartGame"
+   []
+   [ StaticMethod Public "main"
+     [ "args" :- "String[]" ]
+     "void" ])),
+ ClassUml
+ (Concrete
+  (Class "World"
+   [ Field Private ("running" :- "boolean") ]
+   [ StaticMethod Public "makeDefaultWorld"
+     [ "playerName" :- "String" ]
+     "World",
+     Method Private "createPlayer"
+     [ "name" :- "String" ]
+     "void",
+     Method Private "createRooms" [] "void",
+     Method Private "createItems" [] "void",
+     Method Private "createCharacters" [] "void",
+     Method Public "getPlayer" [] "Player",
+     Method Public "getCurrentRoom" [] "Room",
+     Method Public "setCurrentRoom"
+     [ "room" :- "Room" ]
+     "void",
+     Method Public "getCharacter"
+     [ "name" :- "String" ]
+     "GameCharacter",
+     Method Public "getRoom"
+     [ "name" :- "String" ]
+     "Room",
+     Method Public "getItem"
+     [ "name" :- "String" ]
+     "Item",
+     Method Public "getAllCharacters" [] "Collection<GameCharacter>",
+     Method Public "endGame" [] "void",
+     Method Public "isRunning" [] "boolean",
+     Method Public "addItemToRoom"
+     [ "itemName" :- "String",
+       "roomName" :- "String" ]
+     "void" ])),
+
+ RelationUml
+ ((FullRelationEnd "CommandWord" Private "command" (FixedNumber 1))
+  :--: (EmptyRelationEnd "Command")),
+ RelationUml
+ ((FullRelationEnd "Conversation" Private "convs" (OpenRange 0))
+  :--: (EmptyRelationEnd "Conversation")),
+ RelationUml
+ ((FullRelationEnd "World" Private "world" (FixedNumber 1))
+  :--: (EmptyRelationEnd "Game")),
+ RelationUml
+ ((FullRelationEnd "Parser" Private "parser" (FixedNumber 1))
+  :--: (EmptyRelationEnd "Game")),
+ RelationUml
+ ((FullRelationEnd "Conversation" Private "conversation" (OpenRange 0))
+  :--: (EmptyRelationEnd "GameCharacter")),
+ RelationUml
+ ((FullRelationEnd "PlayerInventory" Private "inventory" (FixedNumber 1))
+  :--: (EmptyRelationEnd "Player")),
+ RelationUml
+ ((FullRelationEnd "Room" Private "roomsVisited" (OpenRange 0))
+  :--: (EmptyRelationEnd "Player")),
+ RelationUml
+ ((FullRelationEnd "Room" Private "roomExits" (OpenRange 0))
+  :--: (EmptyRelationEnd "Room")),
+ RelationUml
+ ((FullRelationEnd "Direction" Private "roomExits" (0 :..: 6))
+  :--: (EmptyRelationEnd "Room")),
+ RelationUml
+ ((FullRelationEnd "GameCharacter" Private "characters" (OpenRange 0))
+  :--: (EmptyRelationEnd "Room")),
+ RelationUml
+ ((FullRelationEnd "RoomInventory" Private "roomItems" (OpenRange 0))
+  :--: (EmptyRelationEnd "Room")),
+ RelationUml
+ ((FullRelationEnd "Item" Private "items" (OpenRange 0))
+  :--: (EmptyRelationEnd "RoomInventory")),
+ RelationUml
+ ((FullRelationEnd "Game" Private "game" (FixedNumber 1))
+  :--: (EmptyRelationEnd "StartGame")),
+ RelationUml
+ ((FullRelationEnd "GameCharacter"
+   Private "characters" (OpenRange 0))
+  :--: (EmptyRelationEnd "World")),
+ RelationUml
+ ((FullRelationEnd "Room"
+   Private "rooms" (OpenRange 0))
+  :--: (EmptyRelationEnd "World")),
+ RelationUml
+ ((FullRelationEnd "Item"
+   Private "items" (OpenRange 0))
+  :--: (EmptyRelationEnd "World")),
+ RelationUml ("PlayerInventory" :->: "RoomInventory") ]

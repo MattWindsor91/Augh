@@ -9,7 +9,8 @@ Build-Type: Simple
 Library
   Exposed-Modules: Augh.Uml,
                    Augh.UmlTypes,
-                   Augh.Graphviz
+                   Augh.Graphviz,
+                   Augh.GvTypes
   Hs-Source-Dirs: src
 
 Executable augh

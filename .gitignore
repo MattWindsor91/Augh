@@ -1,6 +1,12 @@
 *.augh
+!sample.augh
+
+
 \#*\#
 *.*~
 dist/
+
 *.png
+*.pdf
+*.eps
 *.dot
