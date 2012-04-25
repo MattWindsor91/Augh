@@ -10,9 +10,6 @@ to Graphviz.
 
 > module Augh.UmlTypes where
 
-We import GvTypes for the graphviz pragma function.
-
-> import Augh.GvTypes
 
 Type Synonyms
 -------------
@@ -29,13 +26,11 @@ UML Statement
 -------------
 
 A UML (class diagram) statement is a class definition or a
-relationship definition.  In addition, we recognise a "Graphviz
-pragma", or a set of Graphviz statements.
+relationship definition.
 
 > data Uml = ClassUml ClassDef
 >          | RelationUml Relationship
->          | GvPragma Stmt
->          deriving (Show, Read)
+>          deriving ( Show, Read )
 
 Classes
 -------
@@ -50,7 +45,7 @@ type is referred to as Variable, for lack of a better name, and we
 use the :- operator as a surrogate for :.
 
 > data Variable = Identifier :- TypeName
->                 deriving (Show, Read)
+>                 deriving ( Show, Read )
 
 ***
 
@@ -65,7 +60,7 @@ external classes can use it.  It can be:
 > data Visibility = Private
 >                 | Protected
 >                 | Public
->                 deriving (Show, Read)
+>                 deriving ( Show, Read )
 
 ***
 
@@ -79,7 +74,7 @@ derived from it.
 
 > data Method = Method Visibility String [Parameter] TypeName
 >             | StaticMethod Visibility String [Parameter] TypeName
->               deriving (Show, Read)
+>               deriving ( Show, Read )
 
 ***
 
@@ -91,7 +86,7 @@ just like static methods.
 
 > data Field = Field Visibility Variable
 >            | StaticField Visibility Variable
->              deriving (Show, Read)
+>              deriving ( Show, Read )
 
 ***
 
@@ -99,7 +94,7 @@ And now, the class itself.  It's simply a combination of a name, a
 series of fields, and a series of methods.
 
 > data Class = Class String [Field] [Method]
->            deriving (Show, Read)
+>            deriving ( Show, Read )
 
 ***
 
@@ -117,7 +112,7 @@ However, there are several different types of class definition:
 > data ClassDef = Concrete Class
 >               | Abstract Class
 >               | String :>> ClassDef
->               deriving (Show, Read)
+>               deriving ( Show, Read )
 
 For convenience, we'll define a function that gets the class part of
 the ClassDef, throwing away any annotations.
@@ -141,7 +136,7 @@ Full ends come with an instance and multiplicity.
 
 > data RelationEnd = FullRelationEnd ClassName Visibility Identifier Multiplicity
 >                  | EmptyRelationEnd ClassName
->                  deriving (Show, Read)
+>                  deriving ( Show, Read )
 
 ***
 
@@ -154,7 +149,7 @@ there is no upper limit, or a fixed number [x].
 > data Multiplicity = FixedNumber Integer
 >                   | Integer :..: Integer
 >                   | OpenRange Integer
->                   deriving (Show, Read)
+>                   deriving ( Show, Read )
 
 ***
 
@@ -171,7 +166,7 @@ composition, the first argument is the "whole" end.
 > data Relationship = RelationEnd :<>: RelationEnd
 >                   | RelationEnd :--: RelationEnd
 >                   | ClassName :->: ClassName
->                   deriving (Show, Read)
+>                   deriving ( Show, Read )
 
 Operators
 ---------

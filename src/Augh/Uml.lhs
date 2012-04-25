@@ -4,11 +4,36 @@ Augh.Uml
 Part of Augh!, the Anorexic UML to Graphviz compiler for Haskell
 Licenced under the terms of the MIT Licence (see COPYING)
 
-> module Augh.Uml (transformUmlList) where
+> module Augh.Uml
+>     ( transformUmlList
+>     )
+> where
 
-> import Augh.GvTypes
 > import Augh.UmlLabel
 > import Augh.UmlTypes
+> import Language.Dot.Syntax
+>     ( Graph ( Graph )
+>     , GraphStrictness ( StrictGraph )
+>     , GraphDirectedness ( DirectedGraph )
+>     , Id ( NameId
+>          , StringId
+>          , XmlId
+>          )
+>     , Statement ( NodeStatement
+>                 , EdgeStatement
+>                 )
+>     , Entity ( ENodeId )
+>     , Attribute ( AttributeSetValue )
+>     , NodeId ( NodeId )
+>     , EdgeType ( DirectedEdge
+>                , NoEdge
+>                )
+>     , Xml
+>     )
+> import Control.Arrow
+>     ( ( &&& )
+>     , first
+>     )
 
 Constants
 ---------
@@ -16,9 +41,9 @@ Constants
 This is a set of Graphviz actions that are added to the top of any UML
 graph, used to "set up" the graph before the main body of the graph.
 
-> umlGraphvizPreamble :: Stmt
-> umlGraphvizPreamble = NodeStmt (UnportedNodeId "node")
->                                (Attrs [ "shape" :=: "none" ])
+> umlGraphvizPreamble :: Statement
+> umlGraphvizPreamble = NodeStatement ( toNode "node" )
+>                       ( toASV [ ( "shape", StringId "none" ) ] )
 
 Transforming a list of statements
 ---------------------------------
@@ -29,14 +54,10 @@ list of UML statements to put in the output graph, and spits out the
 output graph in an algebraic data type format that can be used with
 the compile function in Augh.Graphviz.
 
-> transformUmlList :: String -> [Uml] -> Graphviz
+> transformUmlList :: String -> [ Uml ] -> Graph
 > transformUmlList name umls
->   = Digraph name stmt
->     where
->       stmt
->         = (foldl transformUmlListInner umlGraphvizPreamble umls)
->       transformUmlListInner currentStm uml
->         = (currentStm :# (transformUml uml))
+>     = Graph StrictGraph DirectedGraph ( Just . NameId $ name ) stms
+>     where stms = umlGraphvizPreamble : map transformUml umls
 
 UML statement transformer
 -------------------------
@@ -45,10 +66,9 @@ For each UML statement to go into the graph, this function is invoked.
 It converts a UML statement into a Graphviz statement, which itself
 may be a composite of many Graphviz statements.
 
-> transformUml :: Uml -> Stmt
-> transformUml (ClassUml cls) = transformUmlClass cls
-> transformUml (RelationUml rel) = transformUmlRelationship rel
-> transformUml (GvPragma pragma) = pragma
+> transformUml :: Uml -> Statement
+> transformUml ( ClassUml cls ) = transformUmlClass cls
+> transformUml ( RelationUml rel ) = transformUmlRelationship rel
 
 Classes
 -------
@@ -58,12 +78,8 @@ Graphviz statement.  Really, however, the work of transforming one
 into the other occurs in further functions; this function just glues
 them together.
 
-> transformUmlClass :: ClassDef -> Stmt
-> transformUmlClass def
->   = makeUmlNode cls label
->     where
->       label = makeClassLabel def
->       cls = classOfDef def
+> transformUmlClass :: ClassDef -> Statement
+> transformUmlClass = makeUmlNode . ( classOfDef &&& makeClassLabel )
 
 ***
 
@@ -71,10 +87,11 @@ This function makes the Graphviz node for a class, given the class and
 the result of compiling a label for the node (which is an involved and
 separate process described in the UmlLabel module).
 
-> makeUmlNode :: Class -> String -> Stmt
-> makeUmlNode (Class name fields methods) label
->   = NodeStmt (UnportedNodeId (safeName name))
->              (Attrs [ "label" :=: label ])
+> makeUmlNode :: ( Class, Xml ) -> Statement
+> makeUmlNode ( Class name _ _, label )
+>   = NodeStatement
+>     ( NodeId ( ( NameId . safeName ) name ) Nothing )
+>     [ AttributeSetValue ( NameId "label" ) ( XmlId label ) ]
 
 ***
 
@@ -99,32 +116,34 @@ safeName just appends the results of encoding every character.
 >    encodex '\n' = "Zn"
 >    encodex '<'  = "Zg"
 >    encodex '>'  = "Zl"
->    encodex a    = [a]
+>    encodex a    = [ a ]
 
 Relationships
 -------------
 
 Relationships are mapped onto Graphviz edges.
 
-> transformUmlRelationship :: Relationship -> Stmt
+> transformUmlRelationship :: Relationship -> Statement
 
 :<>: is the composition relationship.
 
-> transformUmlRelationship (part :<>: whole)
->   = makeRelationshipEdge part whole
->     [ "arrowhead" :=: "diamond",
->       "headlabel" :=: makeRelationEndLabel whole,
->       "taillabel" :=: makeRelationEndLabel part ]
+> transformUmlRelationship ( part :<>: whole )
+>   = makeRelationshipEdge part whole ( toASV [ arrow, headl, taill ] )
+>         where
+>         arrow = ( "arrowhead", StringId "diamond" )
+>         headl = ( "headlabel", makeRelationEndLabel whole )
+>         taill = ( "taillabel", makeRelationEndLabel part )
 
 ***
 
 :--: is the association relationship.
 
-> transformUmlRelationship (from :--: to)
->   = makeRelationshipEdge from to
->     [ "arrowhead" :=: "none",
->       "headlabel" :=: makeRelationEndLabel to,
->       "taillabel" :=: makeRelationEndLabel from ]
+> transformUmlRelationship ( from :--: to )
+>   = makeRelationshipEdge from to ( toASV [ arrow, headl, taill ] )
+>         where
+>         arrow = ( "arrowhead", StringId "none" )
+>         headl = ( "headlabel", makeRelationEndLabel to )
+>         taill = ( "taillabel", makeRelationEndLabel from )
 
 ***
 
@@ -132,20 +151,30 @@ Relationships are mapped onto Graphviz edges.
 takes in two class names instead of two relation ends --
 generalisations can't be backed up by fields!
 
-> transformUmlRelationship (sub :->: super)
->   = makeRelationshipEdge (EmptyRelationEnd sub)
->                          (EmptyRelationEnd super)
->     [ "arrowhead" :=: "empty" ]
+> transformUmlRelationship ( sub :->: super )
+>   = makeRelationshipEdge ( EmptyRelationEnd sub )
+>                          ( EmptyRelationEnd super )
+>     ( toASV [ ( "arrowhead", StringId "empty" ) ] )
 
 ***
 
+> toASV :: [ ( String, Id ) ] -> [ Attribute ]
+> toASV = map ( uncurry AttributeSetValue . ( first NameId ) )
+
+
+Generic unported node ID
+
+> toNode :: String -> NodeId
+> toNode = ( flip NodeId $ Nothing ) . NameId
+
 This is the general edge maker for relationships.
 
-> makeRelationshipEdge :: RelationEnd -> RelationEnd -> [Attr] -> Stmt
+> makeRelationshipEdge :: RelationEnd -> RelationEnd -> [ Attribute ] -> Statement
 > makeRelationshipEdge from to attrs
->   = (EdgeStmt (EdgeNodeId (nameOf from))
->               (DirectedEdge (EdgeNodeId (nameOf to)))
->               (Attrs attrs))
->   where
->     nameOf (FullRelationEnd name _ _ _) = (safeName name)
->     nameOf (EmptyRelationEnd name) = (safeName name)
+>     = EdgeStatement
+>       [ ENodeId NoEdge       ( toNode . nameOf $ from )
+>       , ENodeId DirectedEdge ( toNode . nameOf $ to   )
+>       ] attrs
+>     where
+>     nameOf ( FullRelationEnd name _ _ _ ) = safeName name
+>     nameOf ( EmptyRelationEnd name ) = safeName name

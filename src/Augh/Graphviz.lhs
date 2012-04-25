@@ -61,11 +61,14 @@ for the case where no output has been folded yet.
 > compileEdgeRhs (CompoundEdgeRhs a b) = compileEdgeRhs a ++ compileEdgeRhs b
 > compileEdgeRhs (DirectedEdge op) = "-> " ++ compileEdgeOp op
 
+
 Statement compiler
 ------------------
 
 > compileStmt :: Stmt -> String
-> compileStmt (a :# b) = concat [compileStmt a, ";\n", compileStmt b]
-> compileStmt (NodeStmt a b) = concat [compileNodeId a, " ", compileAttrList b]
-> compileStmt (EdgeStmt lhs rhs attrs)
->   =  intercalate " " [compileEdgeOp lhs, compileEdgeRhs rhs, compileAttrList attrs]
+> compileStmt ( a :# b ) =
+>     concat [ compileStmt a, ";\n", compileStmt b ]
+> compileStmt (NodeStmt a b) =
+>     concat [compileNodeId a, " ", compileAttrList b ]
+> compileStmt (EdgeStmt lhs rhs attrs) =
+>     unwords [ compileEdgeOp lhs, compileEdgeRhs rhs, compileAttrList attrs ]

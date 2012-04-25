@@ -2,7 +2,9 @@ module Asst3Uml where
 import Uml
 import UmlTypes
 import Graphviz
-import IO
+import System.IO
+import System.IO.Error
+import Control.Exception (bracket, bracket_)
 
 uml = [ClassUml
        (Concrete
