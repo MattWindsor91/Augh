@@ -1,31 +1,97 @@
-Name: Augh
-Version: 1.0
-Cabal-Version: >=1.8
-License: MIT
-Author: Matt Windsor
-Synopsis: Anorexic UML to Graphviz compiler for Haskell
-Build-Type: Simple
+cabal-version: 1.12
 
-Library
-  Exposed-Modules: Augh.Uml,
-                   Augh.UmlTypes,
-                   Augh.Parser
-  Build-Depends: base >= 4 && < 5,
-                 language-dot >= 0.0.7 && < 0.1.0,
-                 parsec >= 3.1.2 && < 4
-  Hs-Source-Dirs: src
-  Ghc-Options: -Wall
+-- This file has been generated from package.yaml by hpack version 0.36.0.
+--
+-- see: https://github.com/sol/hpack
 
-Executable augh-uml2gv
-  Main-Is: uml2gv-Main.lhs
-  Build-Depends: base >= 4 && < 5,
-                 language-dot >= 0.0.7 && < 0.1.0
-  Hs-Source-Dirs: src
-  Ghc-Options: -Wall
+name:           augh
+version:        0.1.0
+description:    Please see the README on GitHub at <https://github.com/MattWindsor91/augh#readme>
+homepage:       https://github.com/MattWindsor91/augh#readme
+bug-reports:    https://github.com/MattWindsor91/augh/issues
+author:         Matt Windsor
+maintainer:     mattwindsor91@gmail.com
+copyright:      2023 Matt Windsor
+license:        MIT
+build-type:     Simple
+extra-source-files:
+    README.md
+    CHANGELOG.md
 
-Executable augh-augh2uml
-  Main-Is: augh2uml-Main.lhs
-  Build-Depends: base >= 4 && < 5,
-                 parsec >= 3.1.2 && < 4
-  Hs-Source-Dirs: src
-  Ghc-Options: -Wall
+source-repository head
+  type: git
+  location: https://github.com/MattWindsor91/augh
+
+library
+  exposed-modules:
+      Augh.Uml
+      Augh.UmlTypes
+      Augh.Parser
+  other-modules:
+      Augh.Graphviz
+      Augh.GvTypes
+      Augh.UmlLabel
+      Paths_augh
+  hs-source-dirs:
+      src
+  default-extensions:
+      DerivingStrategies
+      LambdaCase
+      OverloadedStrings
+      ViewPatterns
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
+  build-depends:
+      base >=4.7 && <5
+    , language-dot >=0.1.2 && <0.2
+    , parsec >=3.1.2 && <4
+  default-language: GHC2021
+
+executable augh-augh2uml
+  main-is: augh2uml-Main.lhs
+  other-modules:
+      Augh.Graphviz
+      Augh.GvTypes
+      Augh.Parser
+      Augh.Uml
+      Augh.UmlLabel
+      Augh.UmlTypes
+      Paths_augh
+  hs-source-dirs:
+      src
+  default-extensions:
+      DerivingStrategies
+      LambdaCase
+      OverloadedStrings
+      ViewPatterns
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      augh
+    , base >=4.7 && <5
+    , language-dot >=0.1.2 && <0.2
+    , parsec >=3.1.2 && <4
+  default-language: GHC2021
+
+executable augh-uml2gv
+  main-is: uml2gv-Main.lhs
+  other-modules:
+      Augh.Graphviz
+      Augh.GvTypes
+      Augh.Parser
+      Augh.Uml
+      Augh.UmlLabel
+      Augh.UmlTypes
+      Paths_augh
+  hs-source-dirs:
+      src
+  default-extensions:
+      DerivingStrategies
+      LambdaCase
+      OverloadedStrings
+      ViewPatterns
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      augh
+    , base >=4.7 && <5
+    , language-dot >=0.1.2 && <0.2
+    , parsec >=3.1.2 && <4
+  default-language: GHC2021
