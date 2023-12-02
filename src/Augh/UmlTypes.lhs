@@ -1,7 +1,7 @@
 Augh.UmlTypes
 =============
 
-Part of Augh!, the Anorexic UML to Graphviz compiler for Haskell
+Part of Augh.
 Licenced under the terms of the MIT Licence (see COPYING)
 
 This module contains the algebraic data types abstractly representing

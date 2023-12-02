@@ -1,6 +1,6 @@
 | Parser for Augh's external representation of UML.
 
-Part of Augh!, the Anorexic UML to Graphviz compiler for Haskell
+Part of Augh.
 Licenced under the terms of the MIT Licence (see COPYING)
 
 > module Augh.Parser

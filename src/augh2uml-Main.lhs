@@ -1,7 +1,7 @@
 Main
 ====
 
-Part of Augh!, the Anorexic UML to Graphviz compiler for Haskell
+Part of Augh.
 Licenced under the terms of the MIT Licence (see COPYING)
 
 > module Main ( main ) where
